@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+var categoryEntries map[string]string = make(map[string]string)
 
 func isTopDir() bool {
 	wd, _ := os.Getwd()
@@ -15,6 +18,27 @@ func isTopDir() bool {
 func isGit() bool {
 	_, err := os.Stat("./.git")
 	return err == nil || os.IsExist(err)
+}
+
+func processCommitMessage(msg string) {
+	if strings.Count(msg, ":") < 2 {
+		return
+	}
+	categoryMessages := strings.Split(msg, ";")
+	firstCategory := strings.Split(categoryMessages[0], ":")
+	if len(firstCategory) != 3 {
+		return
+	}
+	ticketName := firstCategory[0]
+	fmt.Println("Found ticket:" + ticketName)
+	categoryEntries[firstCategory[1]] = firstCategory[2]
+	for i := 1; i < len(categoryMessages); i++ {
+		entries := strings.Split(categoryMessages[i], ":")
+		if len(entries) != 2 {
+			continue
+		}
+		categoryEntries[entries[0]] = entries[1]
+	}
 }
 
 func main() {
@@ -40,6 +64,11 @@ func main() {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
+		messageSplit := strings.SplitN(scanner.Text(), "commit: ", 2)
+		if len(messageSplit) != 2 {
+			continue
+		}
+		processCommitMessage(messageSplit[1])
 	}
+	fmt.Println(categoryEntries)
 }
