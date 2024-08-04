@@ -12,12 +12,7 @@ import (
 	"time"
 )
 
-var preamble string = `# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). ` + "\n\n"
+var preamble string = "# Changelog\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n"
 
 type version struct {
 	major, minor, micro int
@@ -95,13 +90,13 @@ func writeEntries(filePath string, v *version) {
 	io.WriteString(file, preamble)
 	n := time.Now()
 	io.WriteString(file, `## `+v.getString())
-	io.WriteString(file, ` - `+n.Format("2006-01-02")+"\n\n")
+	io.WriteString(file, ` - `+n.Format("2006-01-02")+"\n")
 	for category, entries := range categoryEntries {
+		io.WriteString(file, "\n")
 		io.WriteString(file, `### `+category+"\n\n")
 		for _, entry := range entries {
 			io.WriteString(file, "- "+entry+"\n")
 		}
-		io.WriteString(file, "\n")
 	}
 }
 
@@ -110,7 +105,7 @@ func mergeChangelogs(newPath, oldPath string) {
 	defer newFile.Close()
 	oldFile, _ := os.Open(os.Args[1])
 	defer oldFile.Close()
-	oldFile.Seek(int64(len(preamble))+6, 0)
+	oldFile.Seek(int64(len(preamble)), 0)
 	fmt.Println(io.Copy(newFile, oldFile))
 }
 
